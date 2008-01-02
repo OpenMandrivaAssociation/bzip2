@@ -20,6 +20,7 @@ Requires:	%{libname} = %{version}
 BuildRequires:	tetex-dvips tetex-latex
 %endif
 BuildRequires:	texinfo libtool
+BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
