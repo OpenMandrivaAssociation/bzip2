@@ -88,9 +88,13 @@ EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
 install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man1/
 
+%if %mdkversion < 200900
 %post -n %{libname} -p /sbin/ldconfig
+%endif
 
+%if %mdkversion < 200900
 %postun -n %{libname} -p /sbin/ldconfig
+%endif
 
 %clean
 rm -rf %{buildroot}
