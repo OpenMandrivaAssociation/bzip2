@@ -1,11 +1,13 @@
-%define libname_orig lib%{name}
-%define libname %mklibname %{name}_ 1
+%define major 1
+%define libname %mklibname %{name}_ %{major}
+%define develname %mklibname %{name} -d
+
 %define buildpdf 0
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.5
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -15,9 +17,10 @@ Source2:	bzme
 Source3:	bzme.1
 Patch0:		bzip2-makefile.diff
 Requires:	mktemp
-Requires:	%{libname} = %{version}
+Requires:	%{libname} = %{version}-%{release}
 %if %buildpdf
-BuildRequires:	tetex-dvips tetex-latex
+BuildRequires:	tetex-dvips
+BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo libtool
 BuildRoot:	%{_tmppath}/%{name}-%{version}-root
@@ -32,7 +35,7 @@ compressors.
 The command-line options are deliberately very similar to those of GNU Gzip,
 but they are not identical.
 
-%package -n	%{libname}
+%package -n %{libname}
 Summary:	Libraries for developing apps which will use bzip2
 Group:		System/Libraries
 
@@ -40,15 +43,16 @@ Group:		System/Libraries
 Library of bzip2 functions, for developing apps which will use the
 bzip2 library (aka libz2).
 
-%package -n	%{libname}-devel
+%package -n %{develname}
 Summary:	Header files for developing apps which will use bzip2
 Group:		Development/C
-Requires:	%{libname} = %{version}
-Provides:	%{libname_orig}-devel = %{version}-%{release}
+Requires:	%{libname} = %{version}-%{release}
+Provides:	lib%{name}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
-Obsoletes:	%{name}-devel
+Obsoletes:	%{mklibname bzip2_ 1 -d} < 1.0.5-3
+Provides:	%{mklibname bzip2_ 1 -d}
 
-%description -n	%{libname}-devel
+%description -n	%{develname}
 Header files and static library of bzip2 functions, for developing apps which
 will use the bzip2 library (aka libz2).
 
@@ -108,9 +112,9 @@ rm -rf %{buildroot}
 %files -n %{libname}
 %defattr(-,root,root,755)
 %doc LICENSE
-%{_libdir}/libbz2.so.*
+%{_libdir}/libbz2.so.%{major}*
 
-%files -n %{libname}-devel
+%files -n %{develname}
 %defattr(-,root,root,755)
 %doc *.html LICENSE
 %if %buildpdf
@@ -120,5 +124,3 @@ rm -rf %{buildroot}
 %{_libdir}/libbz2.la
 %{_libdir}/libbz2.so
 %{_includedir}/*.h
-
-
