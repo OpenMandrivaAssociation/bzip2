@@ -72,8 +72,8 @@ cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 
 %build
-%make -f Makefile-libbz2_so CFLAGS="%{optflags}" LDFLAGS="%{ldflags}"
-%make CFLAGS="%{optflags}" LDFLAGS="%{ldflags}"
+%make -f Makefile-libbz2_so CFLAGS="%{optflags} -fPIC" LDFLAGS="%{ldflags}"
+%make CFLAGS="%{optflags} -fPIC" LDFLAGS="%{ldflags}"
 
 %if %buildpdf
 texi2dvi --pdf manual.texi
