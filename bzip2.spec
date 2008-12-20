@@ -7,7 +7,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.5
-Release:	%mkrel 3
+Release:	%mkrel 4
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -16,6 +16,7 @@ Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
 Patch0:		bzip2-makefile.diff
+Patch1:		bzip2-1.0.5-LDFLAGS.diff
 Requires:	mktemp
 Requires:	%{libname} = %{version}-%{release}
 %if %buildpdf
@@ -23,7 +24,7 @@ BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo libtool
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
@@ -60,17 +61,19 @@ will use the bzip2 library (aka libz2).
 
 %setup -q
 %patch0 -p0 -b .makefile
+%patch1 -p1 -b .LDFLAGS
 
 echo "lib = %{_lib}" >> config.in
 echo "CFLAGS = %{optflags}" >> config.in
+echo "LDFLAGS = %{ldflags}" >> config.in
 
 cp %{SOURCE1} bzgrep
 cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 
 %build
-%make -f Makefile-libbz2_so
-%make
+%make -f Makefile-libbz2_so CFLAGS="%{optflags}" LDFLAGS="%{ldflags}"
+%make CFLAGS="%{optflags}" LDFLAGS="%{ldflags}"
 
 %if %buildpdf
 texi2dvi --pdf manual.texi
