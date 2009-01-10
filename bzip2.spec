@@ -7,7 +7,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.5
-Release:	%mkrel 4
+Release:	%mkrel 5
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -15,15 +15,15 @@ Source0:	http://www.bzip.org/%{version}/%{name}-%{version}.tar.bz2
 Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
-Patch0:		bzip2-makefile.diff
-Patch1:		bzip2-1.0.5-LDFLAGS.diff
+Patch0:		bzip2-1.0.5-makefile.patch
 Requires:	mktemp
 Requires:	%{libname} = %{version}-%{release}
 %if %buildpdf
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
 %endif
-BuildRequires:	texinfo libtool
+BuildRequires:	texinfo
+BuildRequires:	libtool
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
@@ -60,8 +60,7 @@ will use the bzip2 library (aka libz2).
 %prep
 
 %setup -q
-%patch0 -p0 -b .makefile
-%patch1 -p1 -b .LDFLAGS
+%patch0 -p1 -b .makefile
 
 echo "lib = %{_lib}" >> config.in
 echo "CFLAGS = %{optflags}" >> config.in
@@ -72,8 +71,8 @@ cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 
 %build
-%make -f Makefile-libbz2_so CFLAGS="%{optflags} -fPIC" LDFLAGS="%{ldflags}"
-%make CFLAGS="%{optflags} -fPIC" LDFLAGS="%{ldflags}"
+%make -f Makefile-libbz2_so
+%make
 
 %if %buildpdf
 texi2dvi --pdf manual.texi
