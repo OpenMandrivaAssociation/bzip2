@@ -7,7 +7,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.5
-Release:	%mkrel 5
+Release:	%mkrel 6
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
