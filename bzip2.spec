@@ -6,16 +6,16 @@
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
-Version:	1.0.5
-Release:	%mkrel 7
+Version:	1.0.6
+Release:	%mkrel 1
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
-Source0:	http://www.bzip.org/%{version}/%{name}-%{version}.tar.bz2
+Source0:	http://www.bzip.org/%{version}/%{name}-%{version}.tar.gz
 Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
-Patch0:		bzip2-1.0.5-makefile.patch
+Patch0:		bzip2-1.0.6-makefile.diff
 Requires:	mktemp
 Requires:	%{libname} = %{version}-%{release}
 %if %buildpdf
