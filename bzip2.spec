@@ -7,7 +7,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	%mkrel 3
+Release:	4
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -24,7 +24,6 @@ BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo
 BuildRequires:	libtool
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
@@ -94,35 +93,22 @@ EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
 install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man1/
 
-%if %mdkversion < 200900
-%post -n %{libname} -p /sbin/ldconfig
-%endif
-
-%if %mdkversion < 200900
-%postun -n %{libname} -p /sbin/ldconfig
-%endif
-
-%clean
-rm -rf %{buildroot}
+# cleanup
+rm -f %{buildroot}%{_libdir}/*.*a
 
 %files
-%defattr(-,root,root,755)
 %doc README LICENSE CHANGES
 %{_bindir}/*
 %{_mandir}/man1/*
 
 %files -n %{libname}
-%defattr(-,root,root,755)
 %doc LICENSE
 %{_libdir}/libbz2.so.%{major}*
 
 %files -n %{develname}
-%defattr(-,root,root,755)
 %doc *.html LICENSE
 %if %buildpdf
 %doc manual.pdf
 %endif
-%{_libdir}/libbz2.a
-%{_libdir}/libbz2.la
 %{_libdir}/libbz2.so
 %{_includedir}/*.h
