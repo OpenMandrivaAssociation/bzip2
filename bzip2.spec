@@ -2,12 +2,13 @@
 %define libname %mklibname %{name}_ %{major}
 %define develname %mklibname %{name} -d
 
+%bcond_without	uclibc
 %define buildpdf 0
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	4
+Release:	5
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -24,6 +25,9 @@ BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo
 BuildRequires:	libtool
+%if %{with uclibc}
+BuildRequires:	uClibc-devel
+%endif
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
@@ -35,7 +39,7 @@ compressors.
 The command-line options are deliberately very similar to those of GNU Gzip,
 but they are not identical.
 
-%package -n %{libname}
+%package -n	%{libname}
 Summary:	Libraries for developing apps which will use bzip2
 Group:		System/Libraries
 
@@ -43,7 +47,17 @@ Group:		System/Libraries
 Library of bzip2 functions, for developing apps which will use the
 bzip2 library (aka libz2).
 
-%package -n %{develname}
+%if %{with uclibc}
+%package -n	uclibc-%{libname}
+Summary:	uClibc linked libraries for developing apps which will use bzip2
+Group:		System/Libraries
+
+%description -n	uclibc-%{libname}
+Library of bzip2 functions, for developing apps which will use the
+bzip2 library (aka libz2).
+%endif
+
+%package -n	%{develname}
 Summary:	Header files for developing apps which will use bzip2
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
@@ -51,6 +65,9 @@ Provides:	lib%{name}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 Obsoletes:	%{mklibname bzip2_ 1 -d} < 1.0.5-3
 Provides:	%{mklibname bzip2_ 1 -d}
+%if %{with uclibc}
+Requires:	uclibc-%{libname} = %{EVRD}
+%endif
 
 %description -n	%{develname}
 Header files and static library of bzip2 functions, for developing apps which
@@ -70,6 +87,13 @@ cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 
 %build
+%if %{with uclibc}
+%make -f Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags} -Wl,-O2"
+mkdir -p uclibc
+mv libbz2.so.%{major}* uclibc
+make clean
+%endif
+
 %make -f Makefile-libbz2_so
 %make
 
@@ -79,6 +103,13 @@ texi2dvi --pdf manual.texi
 
 %install
 rm -rf %{buildroot}
+
+%if %{with uclibc}
+mkdir -p %{buildroot}%{uclibc_root}%{_libdir}
+cp -a uclibc/libbz2.so.%{major}* %{buildroot}%{uclibc_root}%{_libdir}
+ln -rsf %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so.%{major}.*.* %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
+%endif
+
 
 %makeinstall_std
 
@@ -105,10 +136,19 @@ rm -f %{buildroot}%{_libdir}/*.*a
 %doc LICENSE
 %{_libdir}/libbz2.so.%{major}*
 
+%if %{with uclibc}
+%files -n uclibc-%{libname}
+%doc LICENSE
+%{uclibc_root}%{_libdir}/libbz2.so.%{major}*
+%endif
+
 %files -n %{develname}
 %doc *.html LICENSE
 %if %buildpdf
 %doc manual.pdf
 %endif
 %{_libdir}/libbz2.so
+%if %{with uclibc}
+%{uclibc_root}%{_libdir}/libbz2.so
+%endif
 %{_includedir}/*.h
