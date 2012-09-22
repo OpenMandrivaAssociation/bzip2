@@ -1,6 +1,6 @@
-%define major 1
-%define libname %mklibname %{name}_ %{major}
-%define develname %mklibname %{name} -d
+%define	major	1
+%define	libname	%mklibname %{name}_ %{major}
+%define	devname	%mklibname %{name} -d
 
 %bcond_without	uclibc
 %define buildpdf 0
@@ -8,7 +8,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	5
+Release:	6
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -26,7 +26,7 @@ BuildRequires:	tetex-latex
 BuildRequires:	texinfo
 BuildRequires:	libtool
 %if %{with uclibc}
-BuildRequires:	uClibc-devel
+BuildRequires:	uClibc-devel >= 0.9.33.2-9
 %endif
 
 %description
@@ -57,7 +57,7 @@ Library of bzip2 functions, for developing apps which will use the
 bzip2 library (aka libz2).
 %endif
 
-%package -n	%{develname}
+%package -n	%{devname}
 Summary:	Header files for developing apps which will use bzip2
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
@@ -69,7 +69,7 @@ Provides:	%{mklibname bzip2_ 1 -d}
 Requires:	uclibc-%{libname} = %{EVRD}
 %endif
 
-%description -n	%{develname}
+%description -n	%{devname}
 Header files and static library of bzip2 functions, for developing apps which
 will use the bzip2 library (aka libz2).
 
@@ -142,7 +142,7 @@ rm -f %{buildroot}%{_libdir}/*.*a
 %{uclibc_root}%{_libdir}/libbz2.so.%{major}*
 %endif
 
-%files -n %{develname}
+%files -n %{devname}
 %doc *.html LICENSE
 %if %buildpdf
 %doc manual.pdf
