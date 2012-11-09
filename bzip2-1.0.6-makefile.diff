@@ -1,0 +1,217 @@
+diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
+--- bzip2-1.0.6/Makefile	2010-09-11 00:46:02.000000000 +0200
++++ bzip2-1.0.6.oden/Makefile	2010-09-20 12:22:58.718326583 +0200
+@@ -12,45 +12,76 @@
+ # in the file LICENSE.
+ # ------------------------------------------------------------------
+ 
++include config.in
++
++# define libdir name
++lib ?= lib
++
++# define standard opt flags
++CFLAGS ?= -O2 -fomit-frame-pointer
++
+ SHELL=/bin/sh
+ 
+ # To assist in cross-compiling
+ CC=gcc
+ AR=ar
+ RANLIB=ranlib
+-LDFLAGS=
++LDFLAGS+=
+ 
+-BIGFILES=-D_FILE_OFFSET_BITS=64
+-CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
++# Large file support
++CFLAGS += -D_FILE_OFFSET_BITS=64
+ 
+-# Where you want it installed when you do 'make install'
+-PREFIX=/usr/local
++# Warnings
++CFLAGS += -Wall -Winline
+ 
+-
+-OBJS= blocksort.o  \
+-      huffman.o    \
+-      crctable.o   \
+-      randtable.o  \
+-      compress.o   \
+-      decompress.o \
+-      bzlib.o
+-
+-all: libbz2.a bzip2 bzip2recover test
+-
+-bzip2: libbz2.a bzip2.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
+-
+-bzip2recover: bzip2recover.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover bzip2recover.o
+-
+-libbz2.a: $(OBJS)
+-	rm -f libbz2.a
+-	$(AR) cq libbz2.a $(OBJS)
+-	@if ( test -f $(RANLIB) -o -f /usr/bin/ranlib -o \
+-		-f /bin/ranlib -o -f /usr/ccs/bin/ranlib ) ; then \
+-		echo $(RANLIB) libbz2.a ; \
+-		$(RANLIB) libbz2.a ; \
+-	fi
++OBJS= blocksort.lo  \
++      huffman.lo    \
++      crctable.lo   \
++      randtable.lo  \
++      compress.lo   \
++      decompress.lo \
++      bzlib.lo
++
++LIB=libbz2.la
++
++prefix=/usr
++bindir=$(prefix)/bin
++libdir=$(prefix)/$(lib)
++mandir=$(prefix)/share/man
++includedir=$(prefix)/include
++DESTDIR=
++
++all: $(LIB) bzip2 bzip2recover test
++
++install: all test
++	mkdir -p $(DESTDIR)$(bindir)
++	libtool --mode=install install -s -m 0755 bzip2 $(DESTDIR)$(bindir)/
++	libtool --mode=install install -s -m 0755 bzip2recover $(DESTDIR)$(bindir)/
++	libtool --mode=install install -m 0755 bzdiff $(DESTDIR)$(bindir)/
++	libtool --mode=install install -m 0755 bzmore $(DESTDIR)$(bindir)/
++	ln -sf bzip2 $(DESTDIR)$(bindir)/bunzip2
++	ln -sf bzip2 $(DESTDIR)$(bindir)/bzcat
++	mkdir -p $(DESTDIR)$(mandir)/man1
++	install -c -m 0644 bzip2.1 $(DESTDIR)$(mandir)/man1/
++	install -c -m 0644 bzdiff.1 $(DESTDIR)$(mandir)/man1/
++	install -c -m 0644 bzmore.1 $(DESTDIR)$(mandir)/man1/
++	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bunzip2.1
++	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bzcat.1
++	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bzip2recover.1
++	mkdir -p $(DESTDIR)$(libdir)
++	libtool --mode=install install $(LIB) $(DESTDIR)$(libdir)
++	mkdir -p $(DESTDIR)$(includedir)
++	install -c -m 0644 bzlib.h $(DESTDIR)$(includedir)
++
++bzip2: bzip2.c $(LIB)
++	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2.c $(LIB)
++
++bzip2recover: bzip2recover.c
++	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2recover.c
++
++$(LIB): $(OBJS)
++	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
++		-version-info 1:0:0
+ 
+ check: test
+ test: bzip2
+@@ -69,70 +100,18 @@
+ 	cmp sample3.tst sample3.ref
+ 	@cat words3
+ 
+-install: bzip2 bzip2recover
+-	if ( test ! -d $(PREFIX)/bin ) ; then mkdir -p $(PREFIX)/bin ; fi
+-	if ( test ! -d $(PREFIX)/lib ) ; then mkdir -p $(PREFIX)/lib ; fi
+-	if ( test ! -d $(PREFIX)/man ) ; then mkdir -p $(PREFIX)/man ; fi
+-	if ( test ! -d $(PREFIX)/man/man1 ) ; then mkdir -p $(PREFIX)/man/man1 ; fi
+-	if ( test ! -d $(PREFIX)/include ) ; then mkdir -p $(PREFIX)/include ; fi
+-	cp -f bzip2 $(PREFIX)/bin/bzip2
+-	cp -f bzip2 $(PREFIX)/bin/bunzip2
+-	cp -f bzip2 $(PREFIX)/bin/bzcat
+-	cp -f bzip2recover $(PREFIX)/bin/bzip2recover
+-	chmod a+x $(PREFIX)/bin/bzip2
+-	chmod a+x $(PREFIX)/bin/bunzip2
+-	chmod a+x $(PREFIX)/bin/bzcat
+-	chmod a+x $(PREFIX)/bin/bzip2recover
+-	cp -f bzip2.1 $(PREFIX)/man/man1
+-	chmod a+r $(PREFIX)/man/man1/bzip2.1
+-	cp -f bzlib.h $(PREFIX)/include
+-	chmod a+r $(PREFIX)/include/bzlib.h
+-	cp -f libbz2.a $(PREFIX)/lib
+-	chmod a+r $(PREFIX)/lib/libbz2.a
+-	cp -f bzgrep $(PREFIX)/bin/bzgrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzfgrep
+-	chmod a+x $(PREFIX)/bin/bzgrep
+-	cp -f bzmore $(PREFIX)/bin/bzmore
+-	ln -s -f $(PREFIX)/bin/bzmore $(PREFIX)/bin/bzless
+-	chmod a+x $(PREFIX)/bin/bzmore
+-	cp -f bzdiff $(PREFIX)/bin/bzdiff
+-	ln -s -f $(PREFIX)/bin/bzdiff $(PREFIX)/bin/bzcmp
+-	chmod a+x $(PREFIX)/bin/bzdiff
+-	cp -f bzgrep.1 bzmore.1 bzdiff.1 $(PREFIX)/man/man1
+-	chmod a+r $(PREFIX)/man/man1/bzgrep.1
+-	chmod a+r $(PREFIX)/man/man1/bzmore.1
+-	chmod a+r $(PREFIX)/man/man1/bzdiff.1
+-	echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzegrep.1
+-	echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzfgrep.1
+-	echo ".so man1/bzmore.1" > $(PREFIX)/man/man1/bzless.1
+-	echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
+-
+ clean: 
+-	rm -f *.o libbz2.a bzip2 bzip2recover \
++	rm -f *.o *.lo *.a $(LIB) bzip2 bzip2recover \
+ 	sample1.rb2 sample2.rb2 sample3.rb2 \
+ 	sample1.tst sample2.tst sample3.tst
+ 
+-blocksort.o: blocksort.c
+-	@cat words0
+-	$(CC) $(CFLAGS) -c blocksort.c
+-huffman.o: huffman.c
+-	$(CC) $(CFLAGS) -c huffman.c
+-crctable.o: crctable.c
+-	$(CC) $(CFLAGS) -c crctable.c
+-randtable.o: randtable.c
+-	$(CC) $(CFLAGS) -c randtable.c
+-compress.o: compress.c
+-	$(CC) $(CFLAGS) -c compress.c
+-decompress.o: decompress.c
+-	$(CC) $(CFLAGS) -c decompress.c
+-bzlib.o: bzlib.c
+-	$(CC) $(CFLAGS) -c bzlib.c
+-bzip2.o: bzip2.c
+-	$(CC) $(CFLAGS) -c bzip2.c
+-bzip2recover.o: bzip2recover.c
+-	$(CC) $(CFLAGS) -c bzip2recover.c
++.SUFFIXES: .c .o .lo
++
++%.o: %.c bzlib.h bzlib_private.h
++	$(CC) $(CFLAGS) -c $<
+ 
++%.lo: %.c bzlib.h bzlib_private.h
++	libtool --mode=compile $(CC) $(CFLAGS) -c $<
+ 
+ distclean: clean
+ 	rm -f manual.ps manual.html manual.pdf
+diff -Naur bzip2-1.0.6/Makefile-libbz2_so bzip2-1.0.6.oden/Makefile-libbz2_so
+--- bzip2-1.0.6/Makefile-libbz2_so	2010-09-11 01:07:52.000000000 +0200
++++ bzip2-1.0.6.oden/Makefile-libbz2_so	2010-09-20 12:22:58.719327028 +0200
+@@ -20,11 +20,13 @@
+ # in the file LICENSE.
+ # ------------------------------------------------------------------
+ 
++include config.in
+ 
+ SHELL=/bin/sh
+ CC=gcc
+ BIGFILES=-D_FILE_OFFSET_BITS=64
+-CFLAGS=-fpic -fPIC -Wall -Winline -O2 -g $(BIGFILES)
++CFLAGS +=-fpic -fPIC -Wall -Winline -O2 -g $(BIGFILES)
++LDFLAGS +=
+ 
+ OBJS= blocksort.o  \
+       huffman.o    \
+@@ -35,8 +37,8 @@
+       bzlib.o
+ 
+ all: $(OBJS)
+-	$(CC) -shared -Wl,-soname -Wl,libbz2.so.1.0 -o libbz2.so.1.0.6 $(OBJS)
+-	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
++	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.6 $(OBJS)
++	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
+ 	rm -f libbz2.so.1.0
+ 	ln -s libbz2.so.1.0.6 libbz2.so.1.0
+ 
