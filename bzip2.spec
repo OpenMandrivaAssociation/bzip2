@@ -17,6 +17,7 @@ Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
 Patch0:		bzip2-1.0.6-makefile.diff
+Patch1:		bzip2-1.0.6-improve-makefile.patch
 Requires:	mktemp
 %if %{with pdf}
 BuildRequires:	tetex-dvips
@@ -73,7 +74,8 @@ will use the bzip2 library (aka libz2).
 
 %prep
 %setup -q
-%patch0 -p1 -b .makefile
+%patch0 -p1 -b .makefile~
+%patch1 -p1 -b .mdkconf~
 
 echo "lib = %{_lib}" >> config.in
 echo "CFLAGS = %{optflags}" >> config.in
@@ -85,14 +87,13 @@ cp %{SOURCE3} bzme.1
 
 %build
 %if %{with uclibc}
-%make -f Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags}"
 mkdir -p uclibc
-mv libbz2.so.%{major}* uclibc
-make clean
+%make -C uclibc -f ../Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags}" top_sourcedir=..
 %endif
 
-%make -f Makefile-libbz2_so
-%make
+mkdir -p glibc
+%make -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
+%make -C glibc -f ../Makefile top_sourcedir=..
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
@@ -100,14 +101,12 @@ texi2dvi --pdf manual.texi
 
 %install
 %if %{with uclibc}
-mkdir -p %{buildroot}%{uclibc_root}%{_libdir}
-cp -a uclibc/libbz2.so.%{major}* %{buildroot}%{uclibc_root}%{_libdir}
-rm %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
-ln -rs %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so.%{major}.*.* %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
+%makeinstall_std -C uclibc -f ../Makefile-libbz2_so root_libdir=%{uclibc_root}/%{_lib} libdir=%{uclibc_root}%{_libdir} top_sourcedir=..
 %endif
 
 
-%makeinstall_std
+%makeinstall_std -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
+make install-bin install-dev -C glibc -f ../Makefile DESTDIR=%{buildroot} top_sourcedir=..
 
 install -m755 %{SOURCE1} -D %{buildroot}%{_bindir}/bzgrep
 install -m755 %{SOURCE2} -D %{buildroot}%{_bindir}/bzme
@@ -119,8 +118,8 @@ cat > %{buildroot}%{_bindir}/bzless <<EOF
 EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
 
-# cleanup
-rm %{buildroot}%{_libdir}/*.*a
+%check
+make  -C glibc -f ../Makefile top_sourcedir=.. test
 
 %files
 %doc README LICENSE CHANGES
@@ -129,12 +128,12 @@ rm %{buildroot}%{_libdir}/*.*a
 
 %files -n %{libname}
 %doc LICENSE
-%{_libdir}/libbz2.so.%{major}*
+/%{_lib}/libbz2.so.%{major}*
 
 %if %{with uclibc}
 %files -n uclibc-%{libname}
 %doc LICENSE
-%{uclibc_root}%{_libdir}/libbz2.so.%{major}*
+%{uclibc_root}/%{_lib}/libbz2.so.%{major}*
 %endif
 
 %files -n %{devname}
