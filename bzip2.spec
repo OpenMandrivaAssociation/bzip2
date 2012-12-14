@@ -18,7 +18,6 @@ Source2:	bzme
 Source3:	bzme.1
 Patch0:		bzip2-1.0.6-makefile.diff
 Requires:	mktemp
-Requires:	%{libname} = %{version}-%{release}
 %if %{with pdf}
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
