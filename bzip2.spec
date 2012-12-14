@@ -3,12 +3,12 @@
 %define	devname	%mklibname %{name} -d
 
 %bcond_without	uclibc
-%define buildpdf 0
+%bcond_with	pdf
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	6
+Release:	7
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -19,7 +19,7 @@ Source3:	bzme.1
 Patch0:		bzip2-1.0.6-makefile.diff
 Requires:	mktemp
 Requires:	%{libname} = %{version}-%{release}
-%if %buildpdf
+%if %{with pdf}
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
 %endif
@@ -88,7 +88,7 @@ cp %{SOURCE3} bzme.1
 
 %build
 %if %{with uclibc}
-%make -f Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags} -Wl,-O2"
+%make -f Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags}"
 mkdir -p uclibc
 mv libbz2.so.%{major}* uclibc
 make clean
@@ -97,35 +97,33 @@ make clean
 %make -f Makefile-libbz2_so
 %make
 
-%if %buildpdf
+%if %{with pdf}
 texi2dvi --pdf manual.texi
 %endif
 
 %install
-rm -rf %{buildroot}
-
 %if %{with uclibc}
 mkdir -p %{buildroot}%{uclibc_root}%{_libdir}
 cp -a uclibc/libbz2.so.%{major}* %{buildroot}%{uclibc_root}%{_libdir}
-ln -rsf %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so.%{major}.*.* %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
+rm %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
+ln -rs %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so.%{major}.*.* %{buildroot}%{uclibc_root}%{_libdir}/libbz2.so
 %endif
 
 
 %makeinstall_std
 
-install -m0755 bzme %{buildroot}%{_bindir}/
-install -m0755 bzgrep %{buildroot}%{_bindir}/
-install -m0644 bzgrep.1 %{buildroot}%{_mandir}/man1/
+install -m755 %{SOURCE1} -D %{buildroot}%{_bindir}/bzgrep
+install -m755 %{SOURCE2} -D %{buildroot}%{_bindir}/bzme
+install -m644 %{SOURCE3} -D %{buildroot}%{_mandir}/man1/bzme.1
 
 cat > %{buildroot}%{_bindir}/bzless <<EOF
 #!/bin/sh
 %{_bindir}/bunzip2 -c "\$@" | %{_bindir}/less
 EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
-install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man1/
 
 # cleanup
-rm -f %{buildroot}%{_libdir}/*.*a
+rm %{buildroot}%{_libdir}/*.*a
 
 %files
 %doc README LICENSE CHANGES
@@ -144,7 +142,7 @@ rm -f %{buildroot}%{_libdir}/*.*a
 
 %files -n %{devname}
 %doc *.html LICENSE
-%if %buildpdf
+%if %{with pdf}
 %doc manual.pdf
 %endif
 %{_libdir}/libbz2.so
