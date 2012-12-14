@@ -1,5 +1,5 @@
---- bzip2-1.0.6/Makefile-libbz2_so.outofsource~	2012-12-14 09:03:52.064981891 +0100
-+++ bzip2-1.0.6/Makefile-libbz2_so	2012-12-14 09:22:18.271264122 +0100
+--- bzip2-1.0.6/Makefile-libbz2_so.mdkconf~	2012-12-14 11:05:55.017674909 +0100
++++ bzip2-1.0.6/Makefile-libbz2_so	2012-12-14 11:07:25.803497360 +0100
 @@ -20,7 +20,13 @@
  # in the file LICENSE.
  # ------------------------------------------------------------------
@@ -15,7 +15,7 @@
  
  SHELL=/bin/sh
  CC=gcc
-@@ -36,26 +42,39 @@ OBJS= blocksort.o  \
+@@ -36,26 +42,27 @@ OBJS= blocksort.o  \
        decompress.o \
        bzlib.o
  
@@ -28,7 +28,7 @@
 +
 +
 +$(LIBRARY): $(OBJS)
-+	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o $(LIBRARY) $(OBJS)
++	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1 $(LDFLAGS) -o $(LIBRARY) $(OBJS)
 +	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared $(top_sourcedir)/bzip2.c $(LIBRARY)
  	rm -f libbz2.so.1.0
 -	ln -s libbz2.so.1.0.6 libbz2.so.1.0
@@ -60,22 +60,10 @@
 -	$(CC) $(CFLAGS) -c decompress.c
 -bzlib.o: bzlib.c
 -	$(CC) $(CFLAGS) -c bzlib.c
-+blocksort.o: $(top_sourcedir)/blocksort.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/blocksort.c
-+huffman.o: $(top_sourcedir)/huffman.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/huffman.c
-+crctable.o: $(top_sourcedir)/crctable.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/crctable.c
-+randtable.o: $(top_sourcedir)/randtable.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/randtable.c
-+compress.o: $(top_sourcedir)/compress.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/compress.c
-+decompress.o: $(top_sourcedir)/decompress.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/decompress.c
-+bzlib.o: $(top_sourcedir)/bzlib.c
-+	$(CC) $(CFLAGS) -c $(top_sourcedir)/bzlib.c
---- bzip2-1.0.6/Makefile.outofsource~	2012-12-14 09:03:52.064981891 +0100
-+++ bzip2-1.0.6/Makefile	2012-12-14 09:44:52.663859708 +0100
++%.o: $(top_sourcedir)/%.c $(top_sourcedir)/bzlib.h $(top_sourcedir)/bzlib_private.h
++	$(CC) $(CFLAGS) -c $<
+--- bzip2-1.0.6/Makefile.mdkconf~	2012-12-14 11:05:55.017674909 +0100
++++ bzip2-1.0.6/Makefile	2012-12-14 11:05:55.021674769 +0100
 @@ -12,7 +12,8 @@
  # in the file LICENSE.
  # ------------------------------------------------------------------
@@ -86,7 +74,7 @@
  
  # define libdir name
  lib ?= lib
-@@ -51,54 +52,55 @@ mandir=$(prefix)/share/man
+@@ -51,54 +52,59 @@ mandir=$(prefix)/share/man
  includedir=$(prefix)/include
  DESTDIR=
  
@@ -94,7 +82,9 @@
 +all: $(LIB) bzip2 bzip2recover
  
 -install: all test
-+install: all install-lib
++install: all install-bin install-dev install-lib
++
++install-bin: bzip2 bzip2recover
  	mkdir -p $(DESTDIR)$(bindir)
 -	libtool --mode=install install -s -m 0755 bzip2 $(DESTDIR)$(bindir)/
 -	libtool --mode=install install -s -m 0755 bzip2recover $(DESTDIR)$(bindir)/
@@ -116,6 +106,8 @@
  	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bunzip2.1
  	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bzcat.1
  	ln -sf bzip2.1 $(DESTDIR)$(mandir)/man1/bzip2recover.1
++
++install-dev:
 +	mkdir -p $(DESTDIR)$(includedir)
 +	install -c -m 0644 $(top_sourcedir)/bzlib.h $(DESTDIR)$(includedir)
 +
@@ -135,10 +127,9 @@
 +bzip2recover: $(top_sourcedir)/bzip2recover.c
 +	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(top_sourcedir)/bzip2recover.c
  
--$(LIB): $(OBJS)
+ $(LIB): $(OBJS)
 -	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
 -		-version-info 1:0:0
-+$(LIB) lib: $(OBJS)
 +	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -version-info 1:0:6
  
  check: test
@@ -174,7 +165,7 @@
  
  clean: 
  	rm -f *.o *.lo *.a $(LIB) bzip2 bzip2recover \
-@@ -107,10 +109,10 @@ clean:
+@@ -107,10 +113,10 @@ clean:
  
  .SUFFIXES: .c .o .lo
  
@@ -187,7 +178,7 @@
  	libtool --mode=compile $(CC) $(CFLAGS) -c $<
  
  distclean: clean
-@@ -187,10 +189,10 @@ MANUAL_SRCS= 	bz-common.xsl bz-fo.xsl bz
+@@ -187,10 +193,10 @@ MANUAL_SRCS= 	bz-common.xsl bz-fo.xsl bz
  manual: manual.html manual.ps manual.pdf
  
  manual.ps: $(MANUAL_SRCS)
