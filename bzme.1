@@ -1,0 +1,146 @@
+.PU
+.TH bzip2 1
+.SH NAME
+bzme \- recompress gziped, ziped, ... files into bzip2
+
+.SH SYNOPSIS
+.ll +8
+.B bzmz
+.RB [ " \-fh " ]
+[
+.I "filenames \&..."
+]
+
+.SH DESCRIPTION
+.I bzme
+recompresses files using the Burrows-Wheeler block sorting text compression
+algorithm, and Huffman coding.  Compression is generally considerably better
+than that achieved by more conventional LZ77/LZ78-based compressors,
+and approaches the performance of the PPM family of statistical compressors.
+
+.I bzme
+expects a list of file names to accompany the command-line flags.
+Each file is replaced by a recompressed version of itself, with the name
+as described in 
+.B "NEW NAMES"
+section.
+
+.I bzme
+won't overwrite by default existing files.  If you want this to happen, specify
+the \-f flag.
+
+.SH "NEW NAMES"
+.I bzip2
+attempts to guess the filename for the decompressed file 
+from that of the compressed file as follows:
+
+       filename.tgz    becomes   filename.tar.bz2
+       filename.tar.gz becomes   filename.tar.bz2
+       filename.zip    becomes   filename.tar.bz2
+       filename.z      becomes   filename.bz2
+       filename.Z      becomes   filename.bz2
+       filename.gz     becomes   filename.bz2
+
+If the file does not end in one of the recognised endings, \fI.tgz\fP, 
+
+or \fI.zip\fP,
+.I bzme 
+complains that it cannot guess if the name of the recompressed file (ie it
+doesn't detect the original name to be a file compressed in a known format)
+
+.SH OPTIONS
+.TP
+.B \-f
+Force overwrite of output files, even if
+.I -k
+is used.  Normally,
+.I bzip2 
+will not overwrite existing output files.
+
+.TP
+.B \-k
+Keep (don't delete) input files during compression
+or decompression.
+.".TP
+.".B \-q --quiet
+."Suppress non-essential warning messages.  Messages pertaining to
+."I/O errors and other critical events will not be suppressed.
+.".TP
+.".B \-v --verbose
+."Verbose mode -- dysplay space gain (default)
+.".TP
+.".B \-L --license -V --version
+."Display the software version, license terms and conditions.
+
+.SH SECURITY
+.I bzme
+will keep source file if there's an error while decompressing source file
+or recompressing new file (or
+.I -k
+option is used of course).
+
+.I bzme
+won't overwite the target file, even if
+.I -k
+option is used, if the source file doesn't exists.
+
+As a self-check for your protection, 
+.I bzip2
+uses 32-bit CRCs to make sure that the decompressed version of a file is
+identical to the original.
+.BR
+This offers a better protection against corruption
+of the compressed data than offered by gzip.
+
+.SH SPACE GAIN
+Compression is only performed if the compressed file is smaller than the
+original: the original file is only removed if the newly compressed file
+is smaller, else the new recompressed file is deleted.
+
+Text (aka non binary) files're quite nearly always better compressed
+by bzip2 rather than gzip.
+
+.SH MEMORY VS SPACE TRADEOFF
+There're two things :
+.TP
+.B Consumed CPU time
+The needed cpu time is reduced by decompressing only one time.
+Files to recompress were compressed through compress or gzip, used to be
+decompressed by gunzip -t in order to check that the original file was ok.
+This resulted in passing two times the data in the decompression process
+(one to check integrity, one to recompress).
+temporary space usage will be zero since bzme will use a pipe
+rather than a temporary file as it does in the early ages.
+Source error're detected through bash PIPESTATUS feature.
+.TP
+.B Occupied space
+While recompressing files, if they were compressed through compress or gzip,
+temporary space usage will be zero since bzme will use a pipe
+rather than a temporary file as it did in the early ages.
+Source error're detected through bash PIPESTATUS feature.
+Zip files're still fully decompressed on disk.
+
+As for the recompressed file and original file, only the smallest file
+is kept.
+
+.SH RETURN VALUES
+0 for a normal exit.
+1 will be returned if an unknown option is passed.
+
+.SH BUGS
+Bash getopt (which is used to analyse options) isn't gnu style aware, ie cmd
+opt1 file1 file2 opt2 will result in ignoring opt2 option.
+
+Solaris/SunOs du doesn't supports gnu option, and thus, bzme won't
+work on those OSes unless GNU fileutils got installed.
+.BR
+I had once a day patched bzme to use right options for solaris but i had
+lost my changes.
+.LP
+So solaris remains unsupported.
+
+.SH "SEE ALSO"
+bzip2(1), bunzip2(1)
+
+.SH AUTHOR
+Thierry Vignaud <tvignaud@mandrakesoft.com>, 1999-2002

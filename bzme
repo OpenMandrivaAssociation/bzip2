@@ -1,0 +1,212 @@
+#!/bin/sh
+# bzme re-compress gzip, zip, ... files into bzip2
+#==============================================================================
+# Copyright (C) 1999-2002 MandrakeSoft (tvignaud@mandrakesoft.com)
+# By Thierry Vignaud <tvignaud@mandrakesoft.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+# The GNU General Public License can be read at
+# http://www.fsf.org/copyleft/gpl.html
+#==============================================================================
+#
+#  Know bugs:
+#  ----------
+#  - bash getopt isn't gnu style aware, ie cmd opt1 file1 file2 opt2
+#    will result in ignoring opt2 option
+#
+#==============================================================================
+#
+#  Changelog:
+#  ----------
+#  v1.0: original release
+#  v1.1: fix space usage (use pipe rather than temp file)
+#  v1.2: keep source file, not bz2 one if eof while decompressing
+#  v1.3: reduce used cpu time (decompressing only one time;
+#        source crc error 're detected through PIPESTATUS)
+#  v1.4: add zip support on popular^h^h^h^h^hGwenole request
+#  v1.5:
+#        - make zip method acting as z one (remove original file,
+#          keeping only smallest file, displaying size gain, ...)
+#          thus giving occasion to factorize some common code
+#        - check that the source file does exists
+#        - handle corrupted zip source file
+#        - comment the script and verbos-ize() some old changes
+#        - use cheaper shell tests
+#        - add GPL reference
+#        - update online help to reflect optional options and newer
+#          supported formats
+#        - remove dependency on sed by using ${1%old}new_extension
+#  v1.6: 
+#        - print error message on stderr rather than on stdin
+#        - factorize/simplify zip method (fix erase temp files on bzip2ing
+#          error)
+#        - typo fixes
+#        - simplify for_each(file) loop
+#        - add "Know bugs" and TODO sections
+#        - add -h and -k options
+#        - if -k (keep) option is used, keep all files
+#  v1.7: - handle file names with spaces
+#  v1.8:
+#        - able to recompress rar files too
+#        - adapt for Fedora/RHEL
+#==============================================================================
+#
+#
+# TODO:
+#      - retrieve my patch for solaris file utils
+#      - add trap for zip method (is it really useful?)
+#      - add a man page
+#      - move bzme in its own package that requires tar too
+
+
+# Defaults
+force=
+keep=
+
+# Corrupted source error message
+src_err_msg ()
+{	if [ "$2" != 0 ]; then
+		echo "Corrupted source file ($1) !" 1>&2
+		rm -f "$TARGET"
+		STATUS=1
+	fi
+}
+
+gz_compr ()
+{	zcat "$1" | bzip2 -9 > "$TARGET"
+	# Keep PIPESTATUS
+	MY_STATUS=( ${PIPESTATUS[*]} ) 
+	src_err_msg "$1" ${MY_STATUS[0]}
+	if [[ "${MY_STATUS[1]}" != "0" ]]; then
+		echo "error while bziping !" 1>&2
+		STATUS=1
+	fi
+}
+
+create_temp_dir ()
+{
+	[[ -z "$TMPDIR" ]] && TMPDIR=$TMP
+	[[ -z "$TMPDIR" ]] && TMPDIR=~/tmp
+	MY_TMP=$(mktemp -d $TMPDIR/gzme.XXXXXX)
+}
+
+rar_compr ()
+{
+	create_temp_dir
+	(cd $MY_TMP; unrar x "$OLDPWD/$1") > /dev/null
+	src_err_msg "$1" $?
+	tar cfj  "$TARGET" -C $MY_TMP .
+	if [[ $? != 0 ]]; then
+		echo "error while taring !" 1>&2
+		STATUS=1
+	fi
+	# Removing temporary files
+	rm -fr $MY_TMP
+}
+
+zip_compr ()
+{
+	create_temp_dir
+	unzip -qd $MY_TMP "$1"
+	src_err_msg "$1" $?
+	tar cfj  "$TARGET" -C $MY_TMP .
+	if [[ $? != 0 ]]; then
+		echo "error while taring !" 1>&2
+		STATUS=1
+	fi
+	# Removing temporary files
+	rm -fr $MY_TMP
+}
+
+compress ()
+{	echo -n "Compressing $1 ... "
+	if [[ ! -f "$1" ]]; then
+		echo "Source file doesn't exist" 1>&2
+		return
+	fi
+	STATUS=0
+	SIZE=$(du "$1"|cut -f 1 -d "	")
+	SIZE_o=$(du -b "$1"|cut -f 1 -d "	")
+	if [[ -f "$TARGET" ]];	then
+		if [[ -n $force ]];then
+			rm -f "$TARGET"
+		else
+			echo "$TARGET already exists !!" 1>&2
+			echo "Use -f to force it"
+			return
+		fi
+	fi
+	# Do the real compression job
+	$METHOD "$1"
+	# if there was an error
+	if [[ $STATUS = 1 ]]; then
+		[[ -z $keep ]] && rm -f "$TARGET"
+		return
+	fi
+	# Compare size in order to only keep the smallest file
+	SIZE2=$(du "$TARGET"|cut -f 1 -d "	")
+	SIZE2_o=$(du -b "$TARGET"|cut -f 1 -d "	")
+	if [[ $SIZE_o -lt $SIZE2_o && -z $force_compress ]]
+	then
+		echo "=> $TARGET is bigger than $1 ($SIZE"kb" => $SIZE2"kb") !!!"
+		echo "Use -F to force the recompression"
+		[[ -z $keep ]] && rm -f "$TARGET"
+	else
+		echo "=> $TARGET ($SIZE"kb" => $SIZE2"kb")"
+
+		[[ -z $keep ]] && rm -f "$1"
+	fi
+}
+
+while getopts Ffhk opt;  do
+  case "$opt" in
+      F) force_compress="yes";;
+      f) force="yes";;
+      k) keep="yes";;
+      h)
+	  echo "Usage: bzme [-Ffhk] file.*.({,t}gz|Z|zip)"
+	  exit 1;;
+      *)
+	  echo "See bzme -h for usage"
+	  exit 1;;
+  esac
+done
+shift $((OPTIND - 1))
+
+echo keeping: $keep
+
+while [[ "$1" != "" ]]
+do
+	#default method is gz,.Z,.z,..
+	METHOD=gz_compr
+	case "$1" in
+		*.bz2)	echo "$1: already compressed!"; shift;continue;;
+		*.tgz)	TARGET=${1%.tgz}.tar.bz2;;
+		*.Z)	TARGET=${1%.Z}.bz2;;
+		*.gz)	TARGET=${1%.gz}.bz2;;
+		*.rar)	
+			METHOD=rar_compr
+			TARGET=${1%.rar}.bz2
+			;;
+		*.zip)
+			METHOD=zip_compr
+			TARGET=${1%.zip}.tar.bz2
+			;;
+		*)	echo "$1: unknown file extension => ignored"; shift; continue;;
+	esac
+	compress "$1"
+	shift
+done
