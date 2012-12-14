@@ -60,7 +60,6 @@ bzip2 library (aka libz2).
 Summary:	Header files for developing apps which will use bzip2
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
-Provides:	lib%{name}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 Obsoletes:	%{mklibname bzip2_ 1 -d} < 1.0.5-3
 Provides:	%{mklibname bzip2_ 1 -d}
@@ -73,7 +72,6 @@ Header files and static library of bzip2 functions, for developing apps which
 will use the bzip2 library (aka libz2).
 
 %prep
-
 %setup -q
 %patch0 -p1 -b .makefile
 
