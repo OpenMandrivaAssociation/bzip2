@@ -127,17 +127,15 @@ make  -C glibc -f ../Makefile top_sourcedir=.. test
 %{_mandir}/man1/*
 
 %files -n %{libname}
-%doc LICENSE
 /%{_lib}/libbz2.so.%{major}*
 
 %if %{with uclibc}
 %files -n uclibc-%{libname}
-%doc LICENSE
 %{uclibc_root}/%{_lib}/libbz2.so.%{major}*
 %endif
 
 %files -n %{devname}
-%doc *.html LICENSE
+%doc *.html
 %if %{with pdf}
 %doc manual.pdf
 %endif
