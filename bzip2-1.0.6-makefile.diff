@@ -182,7 +182,7 @@ diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
 +	$(CC) $(CFLAGS) -c $<
  
 +%.lo: %.c bzlib.h bzlib_private.h
-+	libtool --mode=compile $(CC) $(CFLAGS) -c $<
++	libtool --tag=CC --mode=compile $(CC) $(CFLAGS) -c $<
  
  distclean: clean
  	rm -f manual.ps manual.html manual.pdf

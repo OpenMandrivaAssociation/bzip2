@@ -175,7 +175,7 @@
  
 -%.lo: %.c bzlib.h bzlib_private.h
 +%.lo: $(top_sourcedir)/%.c $(top_sourcedir)/bzlib.h $(top_sourcedir)/bzlib_private.h
- 	libtool --mode=compile $(CC) $(CFLAGS) -c $<
+ 	libtool --tag=CC --mode=compile $(CC) $(CFLAGS) -c $<
  
  distclean: clean
 @@ -187,10 +193,10 @@ MANUAL_SRCS= 	bz-common.xsl bz-fo.xsl bz
