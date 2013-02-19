@@ -97,13 +97,13 @@ diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
 +	install -c -m 0644 bzlib.h $(DESTDIR)$(includedir)
 +
 +bzip2: bzip2.c $(LIB)
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2.c $(LIB)
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2.c $(LIB)
 +
 +bzip2recover: bzip2recover.c
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2recover.c
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2recover.c
 +
 +$(LIB): $(OBJS)
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
 +		-version-info 1:0:0
  
  check: test

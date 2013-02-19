@@ -118,19 +118,19 @@
 -	install -c -m 0644 bzlib.h $(DESTDIR)$(includedir)
  
 -bzip2: bzip2.c $(LIB)
--	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2.c $(LIB)
+-	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2.c $(LIB)
 +bzip2: $(top_sourcedir)/bzip2.c $(LIB)
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(top_sourcedir)/bzip2.c $(LIB)
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(top_sourcedir)/bzip2.c $(LIB)
  
 -bzip2recover: bzip2recover.c
--	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2recover.c
+-	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ bzip2recover.c
 +bzip2recover: $(top_sourcedir)/bzip2recover.c
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(top_sourcedir)/bzip2recover.c
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(top_sourcedir)/bzip2recover.c
  
  $(LIB): $(OBJS)
--	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
+-	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -rpath $(libdir) \
 -		-version-info 1:0:0
-+	libtool --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -version-info 1:0:6
++	libtool --tag=CC --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) -version-info 1:0:6
  
  check: test
  test: bzip2
