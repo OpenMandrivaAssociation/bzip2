@@ -8,7 +8,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	7
+Release:	8
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -88,7 +88,7 @@ cp %{SOURCE3} bzme.1
 %build
 %if %{with uclibc}
 mkdir -p uclibc
-%make -C uclibc -f ../Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags}" LDFLAGS="%{ldflags}" top_sourcedir=..
+%make -C uclibc -f ../Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags} -fPIC -DPIC $(LFS_CFLAGS)" top_sourcedir=..
 %endif
 
 mkdir -p glibc
