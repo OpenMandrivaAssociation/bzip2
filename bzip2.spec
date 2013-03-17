@@ -92,8 +92,8 @@ mkdir -p uclibc
 %endif
 
 mkdir -p glibc
-%make -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
-%make -C glibc -f ../Makefile top_sourcedir=..
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f ../Makefile top_sourcedir=..
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
