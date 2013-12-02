@@ -18,6 +18,7 @@ Source2:	bzme
 Source3:	bzme.1
 Patch0:		bzip2-1.0.6-makefile.diff
 Patch1:		bzip2-1.0.6-improve-makefile.patch
+Patch2:		build_good-so-lib.patch
 Requires:	mktemp
 %if %{with pdf}
 BuildRequires:	tetex-dvips
@@ -74,8 +75,7 @@ will use the bzip2 library (aka libz2).
 
 %prep
 %setup -q
-%patch0 -p1 -b .makefile~
-%patch1 -p1 -b .mdkconf~
+%apply_patches
 
 echo "lib = %{_lib}" >> config.in
 echo "CFLAGS = %{optflags}" >> config.in
