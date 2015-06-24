@@ -8,7 +8,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	19
+Release:	20
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -16,6 +16,7 @@ Source0:	http://www.bzip.org/%{version}/%{name}-%{version}.tar.gz
 Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
+Source4:	bzip2.rpmlintrc
 Patch0:		bzip2-1.0.6-makefile.diff
 Patch1:		bzip2-1.0.6-improve-makefile.patch
 Patch2:		build_good-so-lib.patch
@@ -56,6 +57,17 @@ Group:		System/Libraries
 %description -n	uclibc-%{libname}
 Library of bzip2 functions, for developing apps which will use the
 bzip2 library (aka libz2).
+
+%package -n	uclibc-%{devname}
+Summary:	Header files for developing apps which will use bzip2
+Group:		Development/C
+Requires:	%{devname} = %{version}-%{release}
+Requires:	uclibc-%{libname} = %{EVRD}
+Conflicts:	%{devname} < 1.0.6-20
+
+%description -n	uclibc-%{devname}
+Header files and static library of bzip2 functions, for developing apps which
+will use the bzip2 library (aka libz2).
 %endif
 
 %package -n	%{devname}
@@ -65,9 +77,6 @@ Requires:	%{libname} = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 Obsoletes:	%{mklibname bzip2_ 1 -d} < 1.0.5-3
 Provides:	%{mklibname bzip2_ 1 -d}
-%if %{with uclibc}
-Requires:	uclibc-%{libname} = %{EVRD}
-%endif
 
 %description -n	%{devname}
 Header files and static library of bzip2 functions, for developing apps which
@@ -132,6 +141,9 @@ make  -C glibc -f ../Makefile top_sourcedir=.. test
 %if %{with uclibc}
 %files -n uclibc-%{libname}
 %{uclibc_root}/%{_lib}/libbz2.so.%{major}*
+
+%files -n uclibc-%{devname}
+%{uclibc_root}%{_libdir}/libbz2.so
 %endif
 
 %files -n %{devname}
@@ -140,7 +152,4 @@ make  -C glibc -f ../Makefile top_sourcedir=.. test
 %doc manual.pdf
 %endif
 %{_libdir}/libbz2.so
-%if %{with uclibc}
-%{uclibc_root}%{_libdir}/libbz2.so
-%endif
 %{_includedir}/*.h
