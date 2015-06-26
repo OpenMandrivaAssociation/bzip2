@@ -8,7 +8,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	20
+Release:	21
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -61,8 +61,9 @@ bzip2 library (aka libz2).
 %package -n	uclibc-%{devname}
 Summary:	Header files for developing apps which will use bzip2
 Group:		Development/C
-Requires:	%{devname} = %{version}-%{release}
+Requires:	%{devname} = %{EVRD}
 Requires:	uclibc-%{libname} = %{EVRD}
+Provides:	uclibc-%{name}-devel = %{EVRD}
 Conflicts:	%{devname} < 1.0.6-20
 
 %description -n	uclibc-%{devname}
