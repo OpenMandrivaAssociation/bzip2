@@ -2,13 +2,13 @@
 %define	libname	%mklibname %{name}_ %{major}
 %define	devname	%mklibname %{name} -d
 
-%bcond_without	uclibc
+%bcond_with	uclibc
 %bcond_with	pdf
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	22
+Release:	23
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
