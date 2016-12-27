@@ -1,14 +1,16 @@
-%define	major	1
-%define	libname	%mklibname %{name}_ %{major}
-%define	devname	%mklibname %{name} -d
+%define	major 1
+%define	libname %mklibname %{name}_ %{major}
+%define	devname %mklibname %{name} -d
 
-%bcond_with	uclibc
-%bcond_with	pdf
+%bcond_with pdf
+
+# (tpg) optimize it a bit
+%global optflags %optflags -O3
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	23
+Release:	24
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -27,9 +29,6 @@ BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo
 BuildRequires:	libtool
-%if %{with uclibc}
-BuildRequires:	uClibc-devel >= 0.9.33.2-9
-%endif
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
@@ -48,28 +47,6 @@ Group:		System/Libraries
 %description -n	%{libname}
 Library of bzip2 functions, for developing apps which will use the
 bzip2 library (aka libz2).
-
-%if %{with uclibc}
-%package -n	uclibc-%{libname}
-Summary:	uClibc linked libraries for developing apps which will use bzip2
-Group:		System/Libraries
-
-%description -n	uclibc-%{libname}
-Library of bzip2 functions, for developing apps which will use the
-bzip2 library (aka libz2).
-
-%package -n	uclibc-%{devname}
-Summary:	Header files for developing apps which will use bzip2
-Group:		Development/C
-Requires:	%{devname} = %{EVRD}
-Requires:	uclibc-%{libname} = %{EVRD}
-Provides:	uclibc-%{name}-devel = %{EVRD}
-Conflicts:	%{devname} < 1.0.6-20
-
-%description -n	uclibc-%{devname}
-Header files and static library of bzip2 functions, for developing apps which
-will use the bzip2 library (aka libz2).
-%endif
 
 %package -n	%{devname}
 Summary:	Header files for developing apps which will use bzip2
@@ -96,27 +73,17 @@ cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 
 %build
-%if %{with uclibc}
-mkdir -p uclibc
-%make -C uclibc -f ../Makefile-libbz2_so CC="%{uclibc_cc}" CFLAGS="%{uclibc_cflags} -fPIC -DPIC $(LFS_CFLAGS)" top_sourcedir=..
-%endif
-
-mkdir -p glibc
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f ../Makefile top_sourcedir=..
+%setup_compile_flags
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
 %endif
 
 %install
-%if %{with uclibc}
-%makeinstall_std -C uclibc -f ../Makefile-libbz2_so root_libdir=%{uclibc_root}/%{_lib} libdir=%{uclibc_root}%{_libdir} top_sourcedir=..
-%endif
-
-
-%makeinstall_std -C glibc -f ../Makefile-libbz2_so top_sourcedir=..
-make install-bin install-dev -C glibc -f ../Makefile DESTDIR=%{buildroot} top_sourcedir=..
+%makeinstall_std -f Makefile-libbz2_so
+make install-bin install-dev -f Makefile DESTDIR=%{buildroot}
 
 install -m755 %{SOURCE1} -D %{buildroot}%{_bindir}/bzgrep
 install -m755 %{SOURCE2} -D %{buildroot}%{_bindir}/bzme
@@ -129,7 +96,7 @@ EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
 
 %check
-make  -C glibc -f ../Makefile top_sourcedir=.. test
+make -f Makefile test
 
 %files
 %doc README LICENSE CHANGES
@@ -138,14 +105,6 @@ make  -C glibc -f ../Makefile top_sourcedir=.. test
 
 %files -n %{libname}
 /%{_lib}/libbz2.so.%{major}*
-
-%if %{with uclibc}
-%files -n uclibc-%{libname}
-%{uclibc_root}/%{_lib}/libbz2.so.%{major}*
-
-%files -n uclibc-%{devname}
-%{uclibc_root}%{_libdir}/libbz2.so
-%endif
 
 %files -n %{devname}
 %doc *.html
