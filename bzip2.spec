@@ -74,8 +74,8 @@ cp %{SOURCE3} bzme.1
 
 %build
 %setup_compile_flags
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f Makefile-libbz2_so
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -C glibc -f Makefile
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
+%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
