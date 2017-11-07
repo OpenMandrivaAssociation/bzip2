@@ -5,12 +5,12 @@
 %bcond_with pdf
 
 # (tpg) optimize it a bit
-%global optflags %optflags -O3
+%global optflags %optflags -Ofast
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	24
+Release:	25
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -22,7 +22,10 @@ Source4:	bzip2.rpmlintrc
 Patch0:		bzip2-1.0.6-makefile.diff
 Patch1:		bzip2-1.0.6-improve-makefile.patch
 Patch2:		build_good-so-lib.patch
-Requires:	mktemp
+# (tpg) ClearLinux Patches
+Patch10:		fasterfile.patch
+Patch11:		cve-2016-3189.patch
+Requires:	coreutils
 %if %{with pdf}
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
