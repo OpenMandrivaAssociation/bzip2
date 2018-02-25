@@ -1,6 +1,6 @@
-%define	major 1
-%define	libname %mklibname bz2_ %{major}
-%define	devname %mklibname bz2 -d
+%define major 1
+%define libname %mklibname bz2_ %{major}
+%define devname %mklibname bz2 -d
 
 %bcond_with pdf
 
@@ -10,7 +10,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	26
+Release:	28
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -34,6 +34,7 @@ BuildRequires:	tetex-latex
 %endif
 BuildRequires:	texinfo
 BuildRequires:	libtool
+Requires:	pbzip2 > 1.1.13-1
 
 %description
 Bzip2 compresses files using the Burrows-Wheeler block-sorting text
@@ -106,6 +107,11 @@ cat > %{buildroot}%{_bindir}/bzless <<EOF
 %{_bindir}/bunzip2 -c "\$@" | %{_bindir}/less
 EOF
 chmod 755 %{buildroot}%{_bindir}/bzless
+
+# (tpg) we are using pigz, so move these
+for i in bzip2 bunzip2 bzcat; do
+    mv %{buildroot}%{_bindir}/"$i" %{buildroot}%{_bindir}/"$i"-st
+done
 
 %check
 make -f Makefile test
