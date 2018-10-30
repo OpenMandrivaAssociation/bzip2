@@ -10,7 +10,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	28
+Release:	29
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
