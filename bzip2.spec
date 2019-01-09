@@ -5,12 +5,12 @@
 %bcond_with pdf
 
 # (tpg) optimize it a bit
-%global optflags %optflags -Ofast
+%global optflags %optflags -O3
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	29
+Release:	30
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -24,8 +24,8 @@ Patch0:		bzip2-1.0.6-makefile.diff
 Patch1:		bzip2-1.0.6-improve-makefile.patch
 Patch2:		build_good-so-lib.patch
 # (tpg) ClearLinux Patches
-Patch10:		fasterfile.patch
-Patch11:		cve-2016-3189.patch
+Patch10:	fasterfile.patch
+Patch11:	cve-2016-3189.patch
 Requires:	%{libname} = %{EVRD}
 Requires:	coreutils
 %if %{with pdf}
@@ -70,11 +70,10 @@ Header files and static library of bzip2 functions, for developing apps which
 will use the bzip2 library (aka libz2).
 
 %prep
-%setup -q
-%apply_patches
+%autosetup -p1
 
 echo "lib = %{_lib}" >> config.in
-echo "CFLAGS = %{optflags} -Ofast" >> config.in
+echo "CFLAGS = %{optflags} -O3" >> config.in
 echo "LDFLAGS = %{ldflags}" >> config.in
 
 cp %{SOURCE1} bzgrep
@@ -85,15 +84,15 @@ sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
 
 %build
 %setup_compile_flags
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
-%make CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
+%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
+%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
 %endif
 
 %install
-%makeinstall_std -f Makefile-libbz2_so
+%make_install -f Makefile-libbz2_so
 make install-bin install-dev -f Makefile DESTDIR=%{buildroot}
 
 install -m755 %{SOURCE1} -D %{buildroot}%{_bindir}/bzgrep
