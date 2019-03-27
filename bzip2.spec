@@ -7,10 +7,13 @@
 # (tpg) optimize it a bit
 %global optflags %optflags -O3
 
+# (tpg) enable PGO
+%bcond_without pgo
+
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	30
+Release:	31
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -71,7 +74,6 @@ will use the bzip2 library (aka libz2).
 
 %prep
 %autosetup -p1
-
 echo "lib = %{_lib}" >> config.in
 echo "CFLAGS = %{optflags} -O3" >> config.in
 echo "LDFLAGS = %{ldflags}" >> config.in
@@ -84,8 +86,24 @@ sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
 
 %build
 %setup_compile_flags
+%if %{with_pgo}
+%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-generate" CXXFLAGS="${CXXFLAGS} -fprofile-instr-generate" LDFLAGS="${LDFLAGS} -fprofile-instr-generate"
+cp %{_bindir}/%{_target_platform}-gcc .
+LD_LIBRARY_PATH=. ./bzip2 -9 manual.ps
+LD_LIBRARY_PATH=. ./bzip2 -9 bzip2.c
+LD_LIBRARY_PATH=. ./bzip2 %{_target_platform}-gcc
+LD_LIBRARY_PATH=. ./bzip2 -d manual.ps.bz2
+LD_LIBRARY_PATH=. ./bzip2 -d bzip2.c.bz2
+LD_LIBRARY_PATH=. ./bzip2 -d %{_target_platform}-gcc.bz2
+rm -f bzip2 *.o
+make clean
+llvm-profdata merge -output=default.profdata *.profraw
+%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" CXXFLAGS="${CXXFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" LDFLAGS="${LDFLAGS} -fprofile-use"  -f Makefile-libbz2_so
+%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" CXXFLAGS="${CXXFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" LDFLAGS="${LDFLAGS} -fprofile-use"  -f Makefile
+%else
 %make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
 %make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
+%endif
 
 %if %{with pdf}
 texi2dvi --pdf manual.texi
