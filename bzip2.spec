@@ -7,12 +7,13 @@
 # (tpg) optimize it a bit
 %global optflags %optflags -O3
 
-# (tpg) enable PGO
-%ifnarch %{ix86}
-%bcond_without pgo
-%else
-%bcond_with pgo
+
+%ifarch %{ix86}
+%define _disable_lto 1
 %endif
+
+# (tpg) enable PGO
+%bcond_without pgo
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
