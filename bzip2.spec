@@ -2,15 +2,14 @@
 %define libname %mklibname bz2_ %{major}
 %define devname %mklibname bz2 -d
 
-%bcond_with pdf
+%ifarch %{ix86}
+%define _disable_lto 1
+%endif
 
 # (tpg) optimize it a bit
 %global optflags %optflags -O3
 
-
-%ifarch %{ix86}
-%define _disable_lto 1
-%endif
+%bcond_with pdf
 
 # (tpg) enable PGO
 %bcond_without pgo
