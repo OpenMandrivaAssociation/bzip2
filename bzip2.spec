@@ -79,7 +79,7 @@ will use the bzip2 library (aka libz2).
 %prep
 %autosetup -p1
 echo "lib = %{_lib}" >> config.in
-echo "CFLAGS = %{optflags} -O3" >> config.in
+echo "CFLAGS = %{optflags} -O3 -fPIC" >> config.in
 echo "LDFLAGS = %{ldflags}" >> config.in
 
 cp %{SOURCE1} bzgrep
