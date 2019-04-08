@@ -7,7 +7,7 @@
 %endif
 
 # (tpg) optimize it a bit
-%global optflags %optflags -O3
+%global optflags %optflags -O3 -fPIC
 
 %bcond_with pdf
 
