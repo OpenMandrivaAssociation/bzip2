@@ -12,7 +12,11 @@
 %bcond_with pdf
 
 # (tpg) enable PGO
+%ifnarch riscv64
 %bcond_without pgo
+%else
+%bcond_with pgo
+%endif
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
