@@ -21,7 +21,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.6
-Release:	32
+Release:	33
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -96,7 +96,7 @@ sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
 
 %build
 %setup_compile_flags
-%if %{with_pgo}
+%if %{with pgo}
 %make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-generate" CXXFLAGS="${CXXFLAGS} -fprofile-instr-generate" LDFLAGS="${LDFLAGS} -fprofile-instr-generate"
 cp %{_bindir}/%{_target_platform}-gcc .
 LD_LIBRARY_PATH=. ./bzip2 -9 manual.ps
