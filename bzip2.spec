@@ -20,12 +20,12 @@
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
-Version:	1.0.6
-Release:	33
+Version:	1.0.7
+Release:	1
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
-Source0:	http://www.bzip.org/%{version}/%{name}-%{version}.tar.gz
+Source0:	https://sourceware.org/pub/bzip2/bzip2-%{version}.tar.gz
 Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
@@ -36,9 +36,6 @@ Patch1:		bzip2-1.0.6-improve-makefile.patch
 Patch2:		build_good-so-lib.patch
 # (tpg) ClearLinux Patches
 Patch10:	fasterfile.patch
-Patch11:	cve-2016-3189.patch
-Patch12:	fix_oss_fuzz_14997.patch
-Patch13:	magicnumber.patch
 Requires:	%{libname} = %{EVRD}
 Requires:	coreutils
 %if %{with pdf}

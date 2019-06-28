@@ -20,9 +20,9 @@
        bzlib.o
  
 -all: $(OBJS)
--	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.6 $(OBJS)
--	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
-+LIBRARY = libbz2.so.1.0.6
+-	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.7 $(OBJS)
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.7
++LIBRARY = libbz2.so.1.0.7
 +
 +all: $(LIBRARY)
 +
@@ -31,7 +31,7 @@
 +	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1 $(LDFLAGS) -o $(LIBRARY) $(OBJS)
 +	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared $(top_sourcedir)/bzip2.c $(LIBRARY)
  	rm -f libbz2.so.1.0
--	ln -s libbz2.so.1.0.6 libbz2.so.1.0
+-	ln -s libbz2.so.1.0.7 libbz2.so.1.0
 +	ln -s $(LIBRARY) libbz2.so.1.0
 +
 +install: all
@@ -43,7 +43,7 @@
 +	ln -sr $(DESTDIR)$(root_libdir)/$(LIBRARY) $(DESTDIR)$(libdir)/libbz2.so
  
  clean: 
--	rm -f $(OBJS) bzip2.o libbz2.so.1.0.6 libbz2.so.1.0 bzip2-shared
+-	rm -f $(OBJS) bzip2.o libbz2.so.1.0.7 libbz2.so.1.0 bzip2-shared
 +	rm -f $(OBJS) bzip2.o $(LIBRARY) libbz2.so.1.0 bzip2-shared
  
 -blocksort.o: blocksort.c

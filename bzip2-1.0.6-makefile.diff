@@ -1,6 +1,6 @@
-diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
---- bzip2-1.0.6/Makefile	2010-09-11 00:46:02.000000000 +0200
-+++ bzip2-1.0.6.oden/Makefile	2010-09-20 12:22:58.718326583 +0200
+diff -up bzip2-1.0.7/Makefile.1~ bzip2-1.0.7/Makefile
+--- bzip2-1.0.7/Makefile.1~	2019-06-27 20:15:39.000000000 +0200
++++ bzip2-1.0.7/Makefile	2019-06-28 13:28:14.311575852 +0200
 @@ -12,45 +12,76 @@
  # in the file LICENSE.
  # ------------------------------------------------------------------
@@ -108,7 +108,7 @@ diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
  
  check: test
  test: bzip2
-@@ -69,70 +100,18 @@
+@@ -69,70 +100,18 @@ test: bzip2
  	cmp sample3.tst sample3.ref
  	@cat words3
  
@@ -186,9 +186,9 @@ diff -Naur bzip2-1.0.6/Makefile bzip2-1.0.6.oden/Makefile
  
  distclean: clean
  	rm -f manual.ps manual.html manual.pdf
-diff -Naur bzip2-1.0.6/Makefile-libbz2_so bzip2-1.0.6.oden/Makefile-libbz2_so
---- bzip2-1.0.6/Makefile-libbz2_so	2010-09-11 01:07:52.000000000 +0200
-+++ bzip2-1.0.6.oden/Makefile-libbz2_so	2010-09-20 12:22:58.719327028 +0200
+diff -up bzip2-1.0.7/Makefile-libbz2_so.1~ bzip2-1.0.7/Makefile-libbz2_so
+--- bzip2-1.0.7/Makefile-libbz2_so.1~	2019-06-27 20:15:39.000000000 +0200
++++ bzip2-1.0.7/Makefile-libbz2_so	2019-06-28 13:30:02.244570616 +0200
 @@ -20,11 +20,13 @@
  # in the file LICENSE.
  # ------------------------------------------------------------------
@@ -204,14 +204,14 @@ diff -Naur bzip2-1.0.6/Makefile-libbz2_so bzip2-1.0.6.oden/Makefile-libbz2_so
  
  OBJS= blocksort.o  \
        huffman.o    \
-@@ -35,8 +37,8 @@
+@@ -35,8 +37,8 @@ OBJS= blocksort.o  \
        bzlib.o
  
  all: $(OBJS)
--	$(CC) -shared -Wl,-soname -Wl,libbz2.so.1.0 -o libbz2.so.1.0.6 $(OBJS)
--	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
-+	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.6 $(OBJS)
-+	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.6
+-	$(CC) -shared -Wl,-soname -Wl,libbz2.so.1.0 -o libbz2.so.1.0.7 $(OBJS)
+-	$(CC) $(CFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.7
++	$(CC) $(CFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1.0 $(LDFLAGS) -o libbz2.so.1.0.7 $(OBJS)
++	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2-shared bzip2.c libbz2.so.1.0.7
  	rm -f libbz2.so.1.0
- 	ln -s libbz2.so.1.0.6 libbz2.so.1.0
+ 	ln -s libbz2.so.1.0.7 libbz2.so.1.0
  
