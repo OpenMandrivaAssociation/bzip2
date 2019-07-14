@@ -20,7 +20,7 @@
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
-Version:	1.0.7
+Version:	1.0.8
 Release:	1
 License:	BSD
 Group:		Archiving/Compression
