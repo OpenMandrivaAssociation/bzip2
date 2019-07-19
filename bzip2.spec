@@ -21,7 +21,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.8
-Release:	1
+Release:	2
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -35,7 +35,7 @@ Patch0:		bzip2-1.0.6-makefile.diff
 Patch1:		bzip2-1.0.6-improve-makefile.patch
 Patch2:		build_good-so-lib.patch
 # (tpg) ClearLinux Patches
-Patch10:	fasterfile.patch
+Patch10:	https://raw.githubusercontent.com/clearlinux-pkgs/bzip2/master/0001-Improve-file-access.patch
 Requires:	%{libname} = %{EVRD}
 Requires:	coreutils
 %if %{with pdf}
@@ -90,6 +90,7 @@ cp %{SOURCE2} bzme
 cp %{SOURCE3} bzme.1
 cp %{SOURCE4} bzip2.pc
 sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
+sed -i "s|@VERSION@|%{version}|" bzip2.pc
 
 %build
 %setup_compile_flags

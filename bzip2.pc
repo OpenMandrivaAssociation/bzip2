@@ -6,6 +6,6 @@ includedir=/usr/include
 
 Name: bzip2
 Description: A file compression library
-Version: 1.0.6
+Version: @VERSION@
 Libs: -L${libdir} -lbz2
 Cflags: -I${includedir}
