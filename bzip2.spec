@@ -1,6 +1,16 @@
+# bzip2 is used by elfutils, which is used by
+# glib2.0, which is used by wine
+%ifarch %{x86_64}
+%bcond_without compat32
+%else
+%bcond_with compat32
+%endif
+
 %define major 1
 %define libname %mklibname bz2_ %{major}
 %define devname %mklibname bz2 -d
+%define lib32name libbz2_%{major}
+%define dev32name libbz2-devel
 
 %ifarch %{ix86}
 %define _disable_lto 1
@@ -21,7 +31,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.8
-Release:	2
+Release:	3
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -79,6 +89,26 @@ Provides:	%{mklibname bzip2 -d} = %{version}-%{release}
 Header files and static library of bzip2 functions, for developing apps which
 will use the bzip2 library (aka libz2).
 
+%if %{with compat32}
+%package -n %{lib32name}
+Summary:	Libraries for developing apps which will use bzip2 (32-bit)
+Group:		System/Libraries
+
+%description -n %{lib32name}
+Library of bzip2 functions, for developing apps which will use the
+bzip2 library (aka libz2).
+
+%package -n %{dev32name}
+Summary:	Header files for developing apps which will use bzip2 (32-bit)
+Group:		Development/C
+Requires:	%{devname} = %{version}-%{release}
+Requires:	%{lib32name} = %{version}-%{release}
+
+%description -n %{dev32name}
+Header files and static library of bzip2 functions, for developing apps which
+will use the bzip2 library (aka libz2).
+%endif
+
 %prep
 %autosetup -p1
 echo "lib = %{_lib}" >> config.in
@@ -94,6 +124,15 @@ sed -i "s|@VERSION@|%{version}|" bzip2.pc
 
 %build
 %setup_compile_flags
+%if %{with compat32}
+FLAGS32="`echo ${CFLAGS} |sed -e 's, -m32,,g;s, -mx32,,g;s, -flto,,g'` -m32"
+%make_build CC="gcc" AR="gcc-ar" RANLIB="gcc-ranlib" CFLAGS="${FLAGS32}" CXXFLAGS="${FLAGS32}" LDFLAGS="${FLAGS32}" -f Makefile-libbz2_so
+mkdir 32
+mv libbz2.so* 32
+sed -e "s|^libdir=|libdir=%{_prefix}/lib|;s|@VERSION@|%{version}|" %{S:4} > 32/bzip2.pc
+ln -s libbz2.so.1 32/libbz2.so
+make clean
+%endif
 %if %{with pgo}
 %make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-generate" CXXFLAGS="${CXXFLAGS} -fprofile-instr-generate" LDFLAGS="${LDFLAGS} -fprofile-instr-generate"
 cp %{_bindir}/%{_target_platform}-gcc .
@@ -138,6 +177,12 @@ for i in bzip2 bunzip2 bzcat; do
     mv %{buildroot}%{_bindir}/"$i" %{buildroot}%{_bindir}/"$i"-st
 done
 
+%if %{with compat32}
+mkdir -p %{buildroot}%{_prefix}/lib/pkgconfig
+mv 32/*.so* %{buildroot}%{_prefix}/lib/
+mv 32/*.pc %{buildroot}%{_prefix}/lib/pkgconfig/
+%endif
+
 %check
 make -f Makefile test
 
@@ -157,3 +202,12 @@ make -f Makefile test
 %{_libdir}/libbz2.so
 %{_includedir}/*.h
 %{_libdir}/pkgconfig/*.pc
+
+%if %{with compat32}
+%files -n %{lib32name}
+%{_prefix}/lib/libbz2.so.%{major}*
+
+%files -n %{dev32name}
+%{_prefix}/lib/libbz2.so
+%{_prefix}/lib/pkgconfig/*.pc
+%endif
