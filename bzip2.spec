@@ -31,7 +31,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.8
-Release:	3
+Release:	4
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -123,9 +123,9 @@ sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
 sed -i "s|@VERSION@|%{version}|" bzip2.pc
 
 %build
-%setup_compile_flags
+%set_build_flags
 %if %{with compat32}
-FLAGS32="`echo ${CFLAGS} |sed -e 's, -m32,,g;s, -mx32,,g;s, -flto,,g'` -m32"
+FLAGS32="$(echo ${CFLAGS} |sed -e 's, -m32,,g;s, -mx32,,g;s, -flto,,g') -m32"
 %make_build CC="gcc" AR="gcc-ar" RANLIB="gcc-ranlib" CFLAGS="${FLAGS32}" CXXFLAGS="${FLAGS32}" LDFLAGS="${FLAGS32}" -f Makefile-libbz2_so
 mkdir 32
 mv libbz2.so* 32
@@ -189,7 +189,7 @@ make -f Makefile test
 %files
 %doc README LICENSE CHANGES
 %{_bindir}/*
-%{_mandir}/man1/*
+%doc %{_mandir}/man1/*
 
 %files -n %{libname}
 /%{_lib}/libbz2.so.%{major}*
