@@ -17,21 +17,15 @@
 %endif
 
 # (tpg) optimize it a bit
-%global optflags %optflags -O3 -fPIC
-
-%bcond_with pdf
+%global optflags %{optflags} -O3 -fPIC
 
 # (tpg) enable PGO
-%ifnarch riscv64
 %bcond_without pgo
-%else
-%bcond_with pgo
-%endif
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.8
-Release:	4
+Release:	5
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -39,20 +33,11 @@ Source0:	https://sourceware.org/pub/bzip2/bzip2-%{version}.tar.gz
 Source1:	bzgrep
 Source2:	bzme
 Source3:	bzme.1
-Source4:	bzip2.pc
-Source5:	bzip2.rpmlintrc
-Patch0:		bzip2-1.0.6-makefile.diff
-Patch1:		bzip2-1.0.6-improve-makefile.patch
-Patch2:		build_good-so-lib.patch
+Source4:	bzip2.rpmlintrc
+Patch0:		https://build.opensuse.org/package/view_file/openSUSE:Factory/bzip2/bzip2-1.0.6.2-autoconfiscated.patch
 # (tpg) ClearLinux Patches
 Patch10:	https://raw.githubusercontent.com/clearlinux-pkgs/bzip2/master/0001-Improve-file-access.patch
 Requires:	%{libname} = %{EVRD}
-Requires:	coreutils
-%if %{with pdf}
-BuildRequires:	tetex-dvips
-BuildRequires:	tetex-latex
-%endif
-BuildRequires:	texinfo
 BuildRequires:	libtool
 Requires:	pbzip2 > 1.1.13-1
 
@@ -111,60 +96,74 @@ will use the bzip2 library (aka libz2).
 
 %prep
 %autosetup -p1
-echo "lib = %{_lib}" >> config.in
-echo "CFLAGS = %{optflags} -O3 -fPIC" >> config.in
-echo "LDFLAGS = %{ldflags}" >> config.in
 
-cp %{SOURCE1} bzgrep
-cp %{SOURCE2} bzme
-cp %{SOURCE3} bzme.1
-cp %{SOURCE4} bzip2.pc
-sed -i "s|^libdir=|libdir=%{_libdir}|" bzip2.pc
-sed -i "s|@VERSION@|%{version}|" bzip2.pc
+autoreconf -fiv
 
 %build
-%set_build_flags
+export CONFIGURE_TOP=$(pwd)
+
 %if %{with compat32}
-FLAGS32="$(echo ${CFLAGS} |sed -e 's, -m32,,g;s, -mx32,,g;s, -flto,,g') -m32"
-%make_build CC="gcc" AR="gcc-ar" RANLIB="gcc-ranlib" CFLAGS="${FLAGS32}" CXXFLAGS="${FLAGS32}" LDFLAGS="${FLAGS32}" -f Makefile-libbz2_so
-mkdir 32
-mv libbz2.so* 32
-sed -e "s|^libdir=|libdir=%{_prefix}/lib|;s|@VERSION@|%{version}|" %{S:4} > 32/bzip2.pc
-ln -s libbz2.so.1 32/libbz2.so
-make clean
+mkdir build32
+cd build32
+%configure32
+cd ..
 %endif
+
+mkdir build
+cd build
+
 %if %{with pgo}
-%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-generate" CXXFLAGS="${CXXFLAGS} -fprofile-instr-generate" LDFLAGS="${LDFLAGS} -fprofile-instr-generate"
+export LD_LIBRARY_PATH="$(pwd)"
+
+CFLAGS="%{optflags} -fprofile-generate -mllvm -vp-counters-per-site=4" \
+CXXFLAGS="%{optflags} -fprofile-generate" \
+LDFLAGS="%{build_ldflags} -fprofile-generate" \
+%configure
+%make_build
+%make_build test
 cp %{_bindir}/%{_target_platform}-gcc .
-LD_LIBRARY_PATH=. ./bzip2 -9 manual.ps
-LD_LIBRARY_PATH=. ./bzip2 -9 bzip2.c
+LD_LIBRARY_PATH=. ./bzip2 -9 ../manual.ps
+LD_LIBRARY_PATH=. ./bzip2 -9 ../bzip2.c
 LD_LIBRARY_PATH=. ./bzip2 %{_target_platform}-gcc
-LD_LIBRARY_PATH=. ./bzip2 -d manual.ps.bz2
-LD_LIBRARY_PATH=. ./bzip2 -d bzip2.c.bz2
+LD_LIBRARY_PATH=. ./bzip2 -d ../manual.ps.bz2
+LD_LIBRARY_PATH=. ./bzip2 -d ../bzip2.c.bz2
 LD_LIBRARY_PATH=. ./bzip2 -d %{_target_platform}-gcc.bz2
+
 rm -f bzip2 *.o
 make clean
-llvm-profdata merge -output=default.profdata *.profraw
-%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" CXXFLAGS="${CXXFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" LDFLAGS="${LDFLAGS} -fprofile-use"  -f Makefile-libbz2_so
-%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" CFLAGS="${CFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" CXXFLAGS="${CXXFLAGS} -fprofile-instr-use=$(pwd)/default.profdata" LDFLAGS="${LDFLAGS} -fprofile-use"  -f Makefile
-%else
-%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile-libbz2_so
-%make_build CC="%{__cc}" AR="%{__ar}" RANLIB="%{__ranlib}" -f Makefile
-%endif
 
-%if %{with pdf}
-texi2dvi --pdf manual.texi
+unset LD_LIBRARY_PATH
+llvm-profdata merge --output=../%{name}-llvm.profdata *.profraw
+PROFDATA="$(realpath ../%{name}-llvm.profdata)"
+
+CFLAGS="%{optflags} -fprofile-use=$PROFDATA" \
+CXXFLAGS="%{optflags} -fprofile-use=$PROFDATA" \
+LDFLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
 %endif
+%configure
+
+cd ..
+
+%if %{with compat32}
+%make_build -C build32
+%endif
+%make_build -C build
 
 %install
-%make_install -f Makefile-libbz2_so
-make install-bin install-dev -f Makefile DESTDIR=%{buildroot}
+%if %{with compat32}
+%make_install -C build32
+%endif
+%make_install -C build
 
 install -m755 %{SOURCE1} -D %{buildroot}%{_bindir}/bzgrep
 install -m755 %{SOURCE2} -D %{buildroot}%{_bindir}/bzme
 install -m644 %{SOURCE3} -D %{buildroot}%{_mandir}/man1/bzme.1
-mkdir -p %{buildroot}%{_libdir}/pkgconfig
-install -m0644 bzip2.pc %{buildroot}%{_libdir}/pkgconfig
+
+# prolly needed for steam and other stuff
+ln -s libbz2.so.1 %{buildroot}%{_libdir}/libbz2.so.1.0
+%if %{with compat32}
+ln -s libbz2.so.1 %{buildroot}%{_prefix}/lib/libbz2.so.1.0
+%endif
 
 cat > %{buildroot}%{_bindir}/bzless <<EOF
 #!/bin/sh
@@ -177,14 +176,8 @@ for i in bzip2 bunzip2 bzcat; do
     mv %{buildroot}%{_bindir}/"$i" %{buildroot}%{_bindir}/"$i"-st
 done
 
-%if %{with compat32}
-mkdir -p %{buildroot}%{_prefix}/lib/pkgconfig
-mv 32/*.so* %{buildroot}%{_prefix}/lib/
-mv 32/*.pc %{buildroot}%{_prefix}/lib/pkgconfig/
-%endif
-
 %check
-make -f Makefile test
+%make_build test CC=%{__cc}
 
 %files
 %doc README LICENSE CHANGES
@@ -192,13 +185,10 @@ make -f Makefile test
 %doc %{_mandir}/man1/*
 
 %files -n %{libname}
-/%{_lib}/libbz2.so.%{major}*
+%{_libdir}/libbz2.so.%{major}*
 
 %files -n %{devname}
 %doc *.html
-%if %{with pdf}
-%doc manual.pdf
-%endif
 %{_libdir}/libbz2.so
 %{_includedir}/*.h
 %{_libdir}/pkgconfig/*.pc
