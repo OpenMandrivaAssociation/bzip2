@@ -20,7 +20,11 @@
 %global optflags %{optflags} -O3 -fPIC
 
 # (tpg) enable PGO
+%if %{cross_compiling}
+%bcond_with pgo
+%else
 %bcond_without pgo
+%endif
 
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
@@ -176,8 +180,10 @@ for i in bzip2 bunzip2 bzcat; do
     mv %{buildroot}%{_bindir}/"$i" %{buildroot}%{_bindir}/"$i"-st
 done
 
+%if ! %{cross_compiling}
 %check
-%make_build test CC=%{__cc}
+%make_build test CC="%{__cc}"
+%endif
 
 %files
 %doc README LICENSE CHANGES
