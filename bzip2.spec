@@ -7,14 +7,12 @@
 %endif
 
 %define major 1
-%define libname %mklibname bz2_ %{major}
+%define oldlibname %mklibname bz2_ %{major}
+%define libname %mklibname bz2
 %define devname %mklibname bz2 -d
-%define lib32name libbz2_%{major}
+%define oldlib32name libbz2_%{major}
+%define lib32name libbz2
 %define dev32name libbz2-devel
-
-%ifarch %{ix86}
-%define _disable_lto 1
-%endif
 
 # (tpg) optimize it a bit
 %global optflags %{optflags} -O3 -fPIC
@@ -29,7 +27,7 @@
 Summary:	Extremely powerful file compression utility
 Name:		bzip2
 Version:	1.0.8
-Release:	6
+Release:	7
 License:	BSD
 Group:		Archiving/Compression
 URL:		http://www.bzip.org/index.html
@@ -59,6 +57,7 @@ but they are not identical.
 Summary:	Libraries for developing apps which will use bzip2
 Group:		System/Libraries
 Obsoletes:	%{mklibname bzip2_ 1} < 1.0.6-26
+%rename %{oldlibname}
 
 %description -n %{libname}
 Library of bzip2 functions, for developing apps which will use the
@@ -82,6 +81,7 @@ will use the bzip2 library (aka libz2).
 %package -n %{lib32name}
 Summary:	Libraries for developing apps which will use bzip2 (32-bit)
 Group:		System/Libraries
+%rename %{oldlib32name}
 
 %description -n %{lib32name}
 Library of bzip2 functions, for developing apps which will use the
