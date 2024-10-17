@@ -30,7 +30,7 @@ Version:	1.0.8
 Release:	7
 License:	BSD
 Group:		Archiving/Compression
-URL:		http://www.bzip.org/index.html
+URL:		https://www.bzip.org/index.html
 Source0:	https://sourceware.org/pub/bzip2/bzip2-%{version}.tar.gz
 Source1:	bzgrep
 Source2:	bzme
