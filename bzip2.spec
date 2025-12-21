@@ -40,6 +40,11 @@ Patch0:		https://build.opensuse.org/package/view_file/openSUSE:Factory/bzip2/bzi
 # (tpg) ClearLinux Patches
 Patch10:	https://raw.githubusercontent.com/clearlinux-pkgs/bzip2/master/0001-Improve-file-access.patch
 Requires:	%{libname} = %{EVRD}
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	libtool
 Requires:	pbzip2 > 1.1.13-1
 
